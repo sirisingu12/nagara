@@ -8,7 +8,7 @@ Nagara is a civic-technology prototype that connects citizens, municipal officer
 
 This is an academic Software Engineering and Software Design project. It is not affiliated with the Government of Telangana or any municipal corporation, and it does not integrate with government systems.
 
-**Current status:** Phase 0 is approved; Phase 1 has not started. The architecture is in [PROJECT_PLAN.md](PROJECT_PLAN.md). The application is not runnable yet.
+**Current status:** Phase 0 is approved. The frontend foundation and public prototype pages are implemented, and the backend foundation is in place. Authentication and application database tables are not implemented yet.
 
 ## Who it is for
 
@@ -53,27 +53,23 @@ Confirmed on 8 November 2026. These do not need to be installed again.
 | Database `nagara` | Already created |
 | User `nagara_user` | Already connected and able to run SQL on `nagara` |
 
-## Setup still ahead
+## Backend setup
 
-The application is not runnable yet, because Phase 1 has not been built.
+The Express API uses MySQL through `mysql2` and loads environment variables from the root `.env` file. No database schema, seed accounts, or authentication is created by these setup steps.
 
-1. No Cloudinary account is needed for the initial demo. Photos use a private local server directory; Cloudinary can be configured later through the same storage service.
-2. After Phase 1, copy `.env.example` to `.env`. Set `DB_USER=nagara_user`, `DB_NAME=nagara`, `DB_HOST=127.0.0.1`, and `DB_PORT=3306`. Put the database password and two long random JWT secrets only in `.env`. Do not commit `.env`.
+1. Copy `.env.example` to `.env` in the repository root.
+2. Set `DB_PASSWORD` in `.env` to the local password for `nagara_user`. Keep `.env` private and never commit it.
+3. Install server dependencies if needed, run the backend tests, and check the database connection:
 
-Planned commands, once those phases exist:
-
-```bash
-# Phase 1, from the nagara folder
-npm install --prefix client
+```powershell
+Copy-Item .env.example .env
 npm install --prefix server
-npm run dev --prefix client
+npm test --prefix server
+npm run db:check --prefix server
 npm run dev --prefix server
-
-# Phase 2, after MySQL is running and .env is filled in
-npm run db:setup --prefix server
 ```
 
-The client is planned for `http://localhost:5173` and the API for `http://localhost:4000`.
+The API listens on `http://localhost:4000` by default. `GET /api/health` reports application and database health separately. `DB_PASSWORD` may be empty only if the local MySQL account is configured without a password.
 
 ## Demo accounts
 
