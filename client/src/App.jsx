@@ -1,5 +1,7 @@
+import ThemeToggle from './components/navigation/ThemeToggle.jsx'
+
 function App() {
-  return null
+  return <ThemeToggle />
 }
 
 export default App

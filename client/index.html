@@ -4,6 +4,29 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nagara</title>
+    <script>
+      (() => {
+        const validPreferences = ["light", "dark", "system"];
+        let preference = "system";
+
+        try {
+          const savedPreference = window.localStorage.getItem("nagara-theme");
+          if (validPreferences.includes(savedPreference)) {
+            preference = savedPreference;
+          }
+        } catch (error) {
+          console.warn("Could not read the saved Nagara theme preference.", error);
+        }
+
+        const isDark =
+          preference === "dark" ||
+          (preference === "system" &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        const theme = isDark ? "dark" : "light";
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
