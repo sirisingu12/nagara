@@ -8,7 +8,7 @@ Nagara is a civic-technology prototype that connects citizens, municipal officer
 
 This is an academic Software Engineering and Software Design project. It is not affiliated with the Government of Telangana or any municipal corporation, and it does not integrate with government systems.
 
-**Current status:** Phase 0 is approved. The frontend foundation and public prototype pages are implemented, and the backend foundation is in place. Authentication and application database tables are not implemented yet.
+**Current status:** The frontend public prototype and backend foundations are implemented. The MySQL schema and demo data are installed; authentication and complaint workflow APIs are not implemented yet.
 
 ## Who it is for
 
@@ -33,7 +33,7 @@ Officers and workers only see complaints inside municipalities linked to their a
 ```text
 client/     React application
 server/     Express API
-database/   schema.sql and seed data
+database/   versioned SQL migrations
 shared/     roles, statuses, and priorities used by both sides
 docs/       API and design notes, added with the finished project
 ```
@@ -55,17 +55,19 @@ Confirmed on 8 November 2026. These do not need to be installed again.
 
 ## Backend setup
 
-The Express API uses MySQL through `mysql2` and loads environment variables from the root `.env` file. No database schema, seed accounts, or authentication is created by these setup steps.
+The Express API uses MySQL through `mysql2` and loads environment variables from the root `.env` file. The versioned migrations create the schema without dropping existing objects, and the seed script preserves existing demo-account passwords.
 
 1. Copy `.env.example` to `.env` in the repository root.
 2. Set `DB_PASSWORD` in `.env` to the local password for `nagara_user`. Keep `.env` private and never commit it.
-3. Install server dependencies if needed, run the backend tests, and check the database connection:
+3. Install server dependencies if needed, run tests, check the database connection, then apply the schema and seed demo data:
 
 ```powershell
 Copy-Item .env.example .env
 npm install --prefix server
 npm test --prefix server
 npm run db:check --prefix server
+npm run db:migrate --prefix server
+npm run db:seed --prefix server
 npm run dev --prefix server
 ```
 
@@ -73,7 +75,7 @@ The API listens on `http://localhost:4000` by default. `GET /api/health` reports
 
 ## Demo accounts
 
-All seven fictional seed accounts below will be created in Phase 2. Every seed user will use the password `NagaraDemo#2026`. Municipality naming is standardized as GHMC and Warangal.
+The idempotent database seed creates these seven fictional accounts. Every seed user is initialized with `NagaraDemo#2026`, stored as a bcrypt hash. Rerunning the seed does not change an existing password. Municipality naming is standardized as GHMC and Warangal.
 
 | Role | Email | Scope |
 | --- | --- | --- |
