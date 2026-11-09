@@ -8,7 +8,7 @@ Nagara is a civic-technology prototype that connects citizens, municipal officer
 
 This is an academic Software Engineering and Software Design project. It is not affiliated with the Government of Telangana or any municipal corporation, and it does not integrate with government systems.
 
-**Current status:** Phase 0 only. The architecture is in [PROJECT_PLAN.md](PROJECT_PLAN.md). The application is not runnable yet.
+**Current status:** Phase 0 is approved; Phase 1 has not started. The architecture is in [PROJECT_PLAN.md](PROJECT_PLAN.md). The application is not runnable yet.
 
 ## Who it is for
 
@@ -25,7 +25,7 @@ Officers and workers only see complaints inside municipalities linked to their a
 - **Client:** React, Vite, Tailwind CSS, React Router, Axios, Lucide, Chart.js, React Leaflet, OpenStreetMap
 - **Server:** Node.js, Express, JWT, bcrypt, express-validator
 - **Database:** MySQL Server 8.0.46, database `nagara`, user `nagara_user`
-- **Photos:** Cloudinary or a private local directory, selected by configuration. Uploads are validated as real images and served only after an authorization check
+- **Photos:** Private local storage initially, behind a storage service that supports Cloudinary later. Uploads are validated as real images and served only after an authorization check.
 - **Secrets:** environment variables only
 
 ## Repository layout
@@ -57,7 +57,7 @@ Confirmed on 8 November 2026. These do not need to be installed again.
 
 The application is not runnable yet, because Phase 1 has not been built.
 
-1. Optional: create a Cloudinary account if you later choose hosted photos. The local storage driver can keep demo images in a private server directory instead.
+1. No Cloudinary account is needed for the initial demo. Photos use a private local server directory; Cloudinary can be configured later through the same storage service.
 2. After Phase 1, copy `.env.example` to `.env`. Set `DB_USER=nagara_user`, `DB_NAME=nagara`, `DB_HOST=127.0.0.1`, and `DB_PORT=3306`. Put the database password and two long random JWT secrets only in `.env`. Do not commit `.env`.
 
 Planned commands, once those phases exist:
@@ -77,15 +77,17 @@ The client is planned for `http://localhost:5173` and the API for `http://localh
 
 ## Demo accounts
 
-Seed accounts will be created in Phase 2. They are fictional. Every seed user will use the password `NagaraDemo#2026`.
+All seven fictional seed accounts below will be created in Phase 2. Every seed user will use the password `NagaraDemo#2026`. Municipality naming is standardized as GHMC and Warangal.
 
-| Role | Email |
-| --- | --- |
-| Citizen | `ananya.rao@nagara.demo` |
-| Citizen | `karthik.reddy@nagara.demo` |
-| Officer, Greater Hyderabad | `meera.nair@nagara.demo` |
-| Officer, Greater Warangal | `imran.shaik@nagara.demo` |
-| Field worker | `ravi.kumar@nagara.demo` |
+| Role | Email | Scope |
+| --- | --- | --- |
+| Citizen | `ananya.rao@nagara.demo` | Reports in GHMC |
+| Citizen | `karthik.reddy@nagara.demo` | Reports in Warangal |
+| Officer | `meera.nair@nagara.demo` | GHMC only |
+| Officer | `imran.shaik@nagara.demo` | Warangal only |
+| Field worker | `ravi.kumar@nagara.demo` | GHMC Roads |
+| Field worker | `lakshmi.devi@nagara.demo` | GHMC Water |
+| Field worker | `suresh.goud@nagara.demo` | Warangal Sanitation |
 
 ## Brand
 

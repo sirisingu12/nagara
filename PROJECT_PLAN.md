@@ -2,8 +2,8 @@
 
 **Product:** Nagara  
 **Tagline:** Better streets. Better communities.  
-**Status:** Phase 0 complete. Application code has not been written.  
-**Waiting for:** approval of this plan before Phase 1.
+**Status:** Phase 0 complete and approved. Application code has not been written.
+**Next:** Phase 1 has not started and requires separate confirmation.
 
 Nagara is an independent academic prototype for a Software Engineering and Software Design project. It is not an official Government of Telangana product and does not connect to any government system.
 
@@ -28,7 +28,7 @@ Environment confirmed on 8 November 2026. These tools are already installed and 
 | Application database user | `nagara_user` |
 | Database access | `nagara_user` has connected and executed SQL against `nagara` |
 
-Phase 0 maintains only this file and `README.md`. Frontend, backend, schema, and seed code stay unwritten until you approve the plan.
+Phase 0 maintains only this file and `README.md`. The plan is approved; frontend, backend, schema, and seed code remain unwritten until Phase 1 is separately authorized.
 
 ---
 
@@ -40,9 +40,9 @@ There are exactly three roles: `citizen`, `officer`, and `worker`. There is no g
 
 ---
 
-## 3. Decisions to approve before coding
+## 3. Approved decisions before coding
 
-These choices keep the approved stack (React, Vite, Tailwind, Express, MySQL, JWT, Cloudinary) and change only how the pieces are organized.
+These approved choices keep the established stack (React, Vite, Tailwind, Express, MySQL, and JWT) and change only how the pieces are organized. Private local photo storage is the initial driver; Cloudinary remains supported as a later alternative behind the same storage service.
 
 1. **SQL stays visible.** The backend uses `mysql2` and a repository file per table group. There is no ORM. You can read the queries, and every query uses placeholders (`?`) so user input is never concatenated into SQL.
 
@@ -60,15 +60,15 @@ These choices keep the approved stack (React, Vite, Tailwind, Express, MySQL, JW
 
 8. **Login uses two tokens.** The access token is a short-lived JWT kept in memory. The refresh token is a random value stored only as a hash in `refresh_tokens`, and the browser receives it in an HttpOnly cookie. Refresh rotates that token. Logout revokes it. Passwords are stored only as bcrypt hashes.
 
-9. **Photos go through one storage service.** Cloudinary and a private local directory are interchangeable drivers behind the same functions. Uploads are checked by their real image bytes, limited to 5 MB and 4 files, and saved under a random key. Private images are served only after an authorization check. The README will say which driver is active.
+9. **Photos go through one storage service.** A private local directory is the initial driver, and Cloudinary can be selected later behind the same functions. Uploads are checked by their real image bytes, limited to 5 MB and 4 files, and saved under a random key. Private images are served only after an authorization check. The README will say which driver is active.
 
-10. **Duplicate detection only flags.** Same category, same municipality, within a configurable radius (default 200 metres) and a configurable age (default 14 days), plus a simple word-overlap score on the title and description. Officers see “possible duplicate.” The system does not auto-reject.
+10. **Duplicate detection only flags.** Same category, same municipality, within a configurable radius (default 200 metres) and a configurable age (default 14 days), plus a simple word-overlap score on the title and description. Officers see “possible duplicate.” The system does not auto-reject. The word-overlap threshold will be decided when this feature is implemented.
 
 11. **Priority is rule-based.** Category, a public-safety flag, an optional affected-people count, and age since submission pick a suggested priority from `priority_rules`. An officer may override it and must give a reason. The UI will call this a rules engine, not AI.
 
 12. **Public map hides identity.** Public endpoints return category, status, municipality, and a summary. They omit name, email, phone, and exact coordinates. Public latitude and longitude are rounded to about 110 metres.
 
-Items 5, 8, and 9 now include the session, overdue-audit, and photo rules from this revision. The whole plan is still waiting for approval before Phase 1.
+The user approved all 12 decisions. The demo will use all seven accounts below, with municipality names standardized as GHMC and Warangal. The word-overlap threshold remains deferred until duplicate detection is implemented. Phase 1 has not started and requires separate confirmation.
 
 ---
 
@@ -243,10 +243,10 @@ Demo password for every seed account: `NagaraDemo#2026`. `seed.js` hashes it wit
 
 | Role | Email | Scope |
 | --- | --- | --- |
-| Citizen | `ananya.rao@nagara.demo` | Reports in Greater Hyderabad |
+| Citizen | `ananya.rao@nagara.demo` | Reports in GHMC |
 | Citizen | `karthik.reddy@nagara.demo` | Reports in Warangal |
-| Officer | `meera.nair@nagara.demo` | Greater Hyderabad only |
-| Officer | `imran.shaik@nagara.demo` | Greater Warangal only |
+| Officer | `meera.nair@nagara.demo` | GHMC only |
+| Officer | `imran.shaik@nagara.demo` | Warangal only |
 | Worker | `ravi.kumar@nagara.demo` | GHMC Roads |
 | Worker | `lakshmi.devi@nagara.demo` | GHMC Water |
 | Worker | `suresh.goud@nagara.demo` | Warangal Sanitation |
@@ -403,7 +403,7 @@ A deactivated user is rejected on login, refresh, and access-token checks.
 
 ### Photo storage
 
-Both drivers implement the same storage service: save, open, and delete. `STORAGE_DRIVER=cloudinary` or `STORAGE_DRIVER=local` selects the driver. Callers pass bytes and receive a random storage key. They do not choose Cloudinary or disk paths themselves.
+Both drivers implement the same storage service: save, open, and delete. `STORAGE_DRIVER=local` selects the initial private local driver; `STORAGE_DRIVER=cloudinary` can be selected later. Callers pass bytes and receive a random storage key. They do not choose Cloudinary or disk paths themselves.
 
 Upload rules, enforced on the server:
 
@@ -566,10 +566,10 @@ JWT_REFRESH_EXPIRES=7d
 CLOUDINARY_CLOUD_NAME=
 CLOUDINARY_API_KEY=
 CLOUDINARY_API_SECRET=
-STORAGE_DRIVER=cloudinary
+STORAGE_DRIVER=local
 ```
 
-Use a long random string for each JWT secret. For an offline demo, leave the Cloudinary values blank and set `STORAGE_DRIVER=local`. A Cloudinary account is optional and is only needed when the Cloudinary driver is selected.
+Use a long random string for each JWT secret. The initial demo uses private local photo storage, so leave the Cloudinary values blank and set `STORAGE_DRIVER=local`. A Cloudinary account is optional and is only needed if the Cloudinary driver is selected later.
 
 Postman is for API checks in Phase 2. Cursor is the editor. No Postman collection is required to run the app.
 
@@ -579,7 +579,7 @@ Postman is for API checks in Phase 2. Cursor is the editor. No Postman collectio
 
 | Phase | Work | Status |
 | --- | --- | --- |
-| 0 | Inspect workspace, architecture, ER diagram, this plan, README | Complete, waiting for approval |
+| 0 | Inspect workspace, architecture, ER diagram, this plan, README | Complete and approved |
 | 1 | Vite client, Express skeleton, Tailwind tokens, light/dark theme, shared UI, landing page | Not started |
 | 2 | Schema, seed, auth middleware, validation, error format, repositories | Not started |
 | 3 | Register, login, logout, role redirects, three dashboards fed by the API | Not started |
