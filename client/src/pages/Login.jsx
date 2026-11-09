@@ -1,15 +1,47 @@
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button.jsx'
 import Card from '../components/ui/Card.jsx'
 import Input from '../components/ui/Input.jsx'
+import { useAuth } from '../contexts/AuthContext.jsx'
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
+    setError('')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError('Enter a valid email address.')
+      return
+    }
+    if (!password) {
+      setError('Enter your password.')
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      await login({ email, password })
+      const returnTo = location.state?.from
+      navigate(
+        typeof returnTo === 'string' && returnTo.startsWith('/')
+          ? returnTo
+          : '/',
+        { replace: true },
+      )
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -24,7 +56,7 @@ function Login() {
         </p>
         <div className="mt-8 flex items-center gap-3 text-sm text-muted">
           <LockKeyhole aria-hidden="true" className="text-primary" size={19} />
-          A visual demonstration only. Sign-in is not connected yet.
+          Your short-lived access token stays in memory; your refresh session uses an HttpOnly cookie.
         </div>
       </div>
       <Card className="mx-auto w-full max-w-md p-6 sm:p-8">
@@ -32,31 +64,34 @@ function Login() {
           <p className="text-sm font-semibold text-primary">Nagara account</p>
           <h2 className="mt-2 text-2xl font-bold text-ink">Log in</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
-            This form is a visual prototype and does not authenticate.
+            Use your Nagara account to continue.
           </p>
         </div>
-        <form className="grid gap-5" onSubmit={handleSubmit}>
+        <form className="grid gap-5" noValidate onSubmit={handleSubmit}>
           <Input
             autoComplete="email"
+            error={email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'Enter a valid email address.' : undefined}
             label="Email address"
+            onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
             required
             type="email"
+            value={email}
           />
           <div className="grid gap-2">
-            <div className="flex items-center justify-between gap-3">
-              <label className="text-sm font-medium text-ink" htmlFor="login-password">
-                Password
-              </label>
-            </div>
+            <label className="text-sm font-medium text-ink" htmlFor="login-password">
+              Password
+            </label>
             <div className="relative">
               <Input
                 autoComplete="current-password"
                 className="pr-12"
                 id="login-password"
+                onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter your password"
                 required
                 type={showPassword ? 'text' : 'password'}
+                value={password}
               />
               <button
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
@@ -72,7 +107,8 @@ function Login() {
               </button>
             </div>
           </div>
-          <Button className="w-full" type="submit">
+          {error && <p className="text-sm text-primary" role="alert">{error}</p>}
+          <Button className="w-full" loading={isSubmitting} type="submit">
             Log in
             <Mail aria-hidden="true" size={17} />
           </Button>

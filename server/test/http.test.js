@@ -26,6 +26,7 @@ test('health endpoint separates application and database status', async () => {
     const body = await response.json()
 
     assert.equal(response.status, 200)
+    assert.ok(response.headers.get('x-content-type-options'))
     assert.deepEqual(body, {
       success: true,
       data: {

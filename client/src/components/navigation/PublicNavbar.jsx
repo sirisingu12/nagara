@@ -1,6 +1,7 @@
 import { ArrowRight, Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 
 const navigationLinks = [
@@ -11,7 +12,9 @@ const navigationLinks = [
 
 function PublicNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const [logoutError, setLogoutError] = useState('')
   const location = useLocation()
+  const { user, logout, sessionError } = useAuth()
 
   useEffect(() => {
     setIsMenuOpen(false)
@@ -39,6 +42,51 @@ function PublicNavbar() {
         : 'text-muted hover:bg-surface-muted hover:text-ink'
     }`
 
+  const handleLogout = async () => {
+    setLogoutError('')
+    setIsMenuOpen(false)
+    try {
+      await logout()
+    } catch (error) {
+      setLogoutError(error.message)
+    }
+  }
+
+  const accountActions = (
+    <>
+      {user ? (
+        <>
+          <span className="px-2 text-sm text-muted">
+            {user.fullName} <span className="capitalize">({user.role})</span>
+          </span>
+          <button
+            className="rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-muted focus-visible:outline-focus"
+            onClick={handleLogout}
+            type="button"
+          >
+            Log out
+          </button>
+        </>
+      ) : (
+        <>
+          <Link
+            className="rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-muted focus-visible:outline-focus"
+            to="/login"
+          >
+            Log in
+          </Link>
+          <Link
+            className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-page transition-[filter] hover:brightness-95 focus-visible:outline-focus"
+            to="/register"
+          >
+            Get started
+            <ArrowRight aria-hidden="true" size={16} />
+          </Link>
+        </>
+      )}
+    </>
+  )
+
   return (
     <header className="sticky top-0 z-40 border-b border-border bg-page/95 backdrop-blur">
       <div className="mx-auto flex min-h-18 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -65,19 +113,7 @@ function PublicNavbar() {
 
         <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle />
-          <Link
-            className="rounded-md px-3 py-2 text-sm font-semibold text-primary hover:bg-surface-muted focus-visible:outline-focus"
-            to="/login"
-          >
-            Log in
-          </Link>
-          <Link
-            className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-page transition-[filter] hover:brightness-95 focus-visible:outline-focus"
-            to="/register"
-          >
-            Get started
-            <ArrowRight aria-hidden="true" size={16} />
-          </Link>
+          {accountActions}
         </div>
 
         <button
@@ -110,22 +146,15 @@ function PublicNavbar() {
             ))}
             <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
               <ThemeToggle />
-              <Link
-                className="rounded-md px-3 py-2 text-sm font-semibold text-primary focus-visible:outline-focus"
-                to="/login"
-              >
-                Log in
-              </Link>
-              <Link
-                className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-page focus-visible:outline-focus"
-                to="/register"
-              >
-                Get started
-                <ArrowRight aria-hidden="true" size={16} />
-              </Link>
+              {accountActions}
             </div>
           </div>
         </nav>
+      )}
+      {(logoutError || (!user && sessionError)) && (
+        <p className="mx-auto max-w-7xl px-4 pb-3 text-sm text-primary sm:px-6 lg:px-8" role="alert">
+          {logoutError || sessionError}
+        </p>
       )}
     </header>
   )

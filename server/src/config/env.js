@@ -40,9 +40,33 @@ export function parseEnvironment(environment) {
     throw new Error('DB_NAME must not be empty.')
   }
 
+  if (
+    typeof environment.JWT_ACCESS_SECRET !== 'string' ||
+    environment.JWT_ACCESS_SECRET.length < 32 ||
+    environment.JWT_ACCESS_SECRET === 'replace-with-at-least-32-random-characters'
+  ) {
+    throw new Error('JWT_ACCESS_SECRET must be a private value at least 32 characters long.')
+  }
+
+  const clientOrigin = environment.CLIENT_ORIGIN || 'http://localhost:5173'
+  let parsedClientOrigin
+  try {
+    parsedClientOrigin = new URL(clientOrigin)
+  } catch {
+    throw new Error('CLIENT_ORIGIN must be a valid HTTP or HTTPS origin.')
+  }
+  if (
+    !['http:', 'https:'].includes(parsedClientOrigin.protocol) ||
+    parsedClientOrigin.origin !== clientOrigin
+  ) {
+    throw new Error('CLIENT_ORIGIN must be a valid HTTP or HTTPS origin.')
+  }
+
   return Object.freeze({
     port: parsePort(environment.PORT, 'PORT', 4000),
     nodeEnv: environment.NODE_ENV || 'development',
+    clientOrigin: parsedClientOrigin.origin,
+    jwtAccessSecret: environment.JWT_ACCESS_SECRET,
     database: Object.freeze({
       host: environment.DB_HOST.trim(),
       port: parsePort(environment.DB_PORT, 'DB_PORT'),

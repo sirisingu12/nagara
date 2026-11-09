@@ -8,7 +8,7 @@ Nagara is a civic-technology prototype that connects citizens, municipal officer
 
 This is an academic Software Engineering and Software Design project. It is not affiliated with the Government of Telangana or any municipal corporation, and it does not integrate with government systems.
 
-**Current status:** The frontend public prototype and backend foundations are implemented. The MySQL schema and demo data are installed; authentication and complaint workflow APIs are not implemented yet.
+**Current status:** The frontend public prototype, backend foundation, database schema, demo data, and authentication APIs are implemented. Complaint workflow APIs are not implemented yet.
 
 ## Who it is for
 
@@ -22,8 +22,8 @@ Officers and workers only see complaints inside municipalities linked to their a
 
 ## Planned stack
 
-- **Client:** React, Vite, Tailwind CSS, React Router, Axios, Lucide, Chart.js, React Leaflet, OpenStreetMap
-- **Server:** Node.js, Express, JWT, bcrypt, express-validator
+- **Client:** React, Vite, Tailwind CSS, React Router, fetch-based API client, Lucide, Chart.js, React Leaflet, OpenStreetMap
+- **Server:** Node.js, Express 5, `mysql2`, `jsonwebtoken`, bcrypt
 - **Database:** MySQL Server 8.0.46, database `nagara`, user `nagara_user`
 - **Photos:** Private local storage initially, behind a storage service that supports Cloudinary later. Uploads are validated as real images and served only after an authorization check.
 - **Secrets:** environment variables only
@@ -59,7 +59,8 @@ The Express API uses MySQL through `mysql2` and loads environment variables from
 
 1. Copy `.env.example` to `.env` in the repository root.
 2. Set `DB_PASSWORD` in `.env` to the local password for `nagara_user`. Keep `.env` private and never commit it.
-3. Install server dependencies if needed, run tests, check the database connection, then apply the schema and seed demo data:
+3. Set `JWT_ACCESS_SECRET` to a private random value at least 32 characters long. The sample value in `.env.example` is only a placeholder. Refresh tokens are opaque random values; the API stores their SHA-256 hashes in MySQL.
+4. Install server dependencies if needed, run tests, check the database connection, then apply the schema and seed demo data:
 
 ```powershell
 Copy-Item .env.example .env
@@ -73,9 +74,26 @@ npm run dev --prefix server
 
 The API listens on `http://localhost:4000` by default. `GET /api/health` reports application and database health separately. `DB_PASSWORD` may be empty only if the local MySQL account is configured without a password.
 
+## Authentication
+
+The API signs two-hour HS256 access JWTs using `JWT_ACCESS_SECRET`; the frontend keeps the access token in React memory only and sends it as a bearer token. The frontend restores sessions on startup through `/api/auth/refresh` and refreshes an expired access token once before retrying an authorized API request. Seven-day refresh tokens are generated from cryptographically secure random bytes, stored only as SHA-256 hashes, and delivered in an HttpOnly, SameSite=Lax cookie scoped to `/api/auth`. Refresh rotates tokens transactionally. Reuse of a rotated token revokes the user's remaining active refresh tokens. Cookies are Secure in production and use the exact `CLIENT_ORIGIN` for credentialed CORS and origin checks. Helmet security headers, a 32 KB JSON body limit, and per-process login rate limiting are enabled.
+
+Authentication endpoints:
+
+| Method and path | Description |
+| --- | --- |
+| `POST /api/auth/login` | Validate credentials, return a short-lived access token, and set the refresh cookie. |
+| `POST /api/auth/register` | Create a citizen only; validate selected district/municipality, then sign the new user in. |
+| `POST /api/auth/refresh` | Validate, rotate, and replace the refresh cookie. |
+| `POST /api/auth/logout` | Revoke the current refresh token and clear its cookie. |
+| `GET /api/auth/me` | Return the safe profile for a valid bearer access token. |
+| `GET /api/municipalities` | List municipalities and their districts for public registration. |
+
+Citizens' selected municipality is stored in `users.home_district_id` and `users.home_municipality_id`. `user_municipalities` remains exclusively for officer and worker jurisdiction assignments. The authorization middleware checks officer/worker municipality memberships and additionally restricts workers to their assigned department; complaint data routes are not implemented yet.
+
 ## Demo accounts
 
-The idempotent database seed creates these seven fictional accounts. Every seed user is initialized with `NagaraDemo#2026`, stored as a bcrypt hash. Rerunning the seed does not change an existing password. Municipality naming is standardized as GHMC and Warangal.
+The idempotent database seed creates these seven fictional accounts. Each uses `NagaraDemo#2026`, stored as a bcrypt hash. Rerunning the seed does not change an existing password. Municipality naming is standardized as GHMC and Warangal.
 
 | Role | Email | Scope |
 | --- | --- | --- |

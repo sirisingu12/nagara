@@ -8,6 +8,7 @@ const validEnvironment = {
   DB_USER: 'nagara_user',
   DB_PASSWORD: '',
   DB_NAME: 'nagara',
+  JWT_ACCESS_SECRET: 'test-secret-with-at-least-32-characters',
 }
 
 test('parses valid database settings and defaults the application port', () => {
@@ -19,6 +20,7 @@ test('parses valid database settings and defaults the application port', () => {
   assert.equal(config.database.user, 'nagara_user')
   assert.equal(config.database.password, '')
   assert.equal(config.database.database, 'nagara')
+  assert.equal(config.clientOrigin, 'http://localhost:5173')
 })
 
 test('reports missing variables by name without exposing values', () => {
@@ -40,5 +42,23 @@ test('rejects invalid database and application ports', () => {
   assert.throws(
     () => parseEnvironment({ ...validEnvironment, PORT: '70000' }),
     /PORT must be an integer/,
+  )
+})
+
+test('requires a strong access-token secret and an exact client origin', () => {
+  assert.throws(
+    () => parseEnvironment({ ...validEnvironment, JWT_ACCESS_SECRET: 'short' }),
+    /JWT_ACCESS_SECRET must be a private value/,
+  )
+  assert.throws(
+    () => parseEnvironment({
+      ...validEnvironment,
+      JWT_ACCESS_SECRET: 'replace-with-at-least-32-random-characters',
+    }),
+    /JWT_ACCESS_SECRET must be a private value/,
+  )
+  assert.throws(
+    () => parseEnvironment({ ...validEnvironment, CLIENT_ORIGIN: 'https://example.com/path' }),
+    /CLIENT_ORIGIN must be a valid HTTP or HTTPS origin/,
   )
 })
